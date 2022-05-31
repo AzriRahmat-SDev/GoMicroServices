@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -32,7 +33,13 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome To The Available Courses")
 }
 
-func AllCourses(w http.ResponseWriter, r *http.Request) {
+func allCourseHandler(w http.ResponseWriter, r *http.Request) {
+
+	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/my_db")
+	if err != nil {
+		panic(err.Error())
+	}
+
 	kv := r.URL.Query()
 
 	for k, v := range kv {
@@ -40,15 +47,24 @@ func AllCourses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(Courses)
+	GetRecords(db)
 }
 
-func Course(w http.ResponseWriter, r *http.Request) {
+func courseHandler(w http.ResponseWriter, r *http.Request) {
 
 	// if !validKey(r) {
 	// 	w.WriteHeader(http.StatusNotFound)
 	// 	w.Write([]byte("401 - Invalid key"))
 	// 	return
 	// }
+
+	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/my_db")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer db.Close()
 
 	params := mux.Vars(r)
 	if r.Header.Get("Content-Type") == "application/json" {
@@ -62,9 +78,7 @@ func Course(w http.ResponseWriter, r *http.Request) {
 				if newCourse.Title == "" {
 					w.WriteHeader(
 						http.StatusUnprocessableEntity)
-					w.Write([]byte(
-						"422 - Please supply course " +
-							"information " + "in JSON format"))
+					w.Write([]byte("422 - Please supply course " + "information " + "in JSON format"))
 					return
 				}
 				// check if course exists; add only if
@@ -72,18 +86,16 @@ func Course(w http.ResponseWriter, r *http.Request) {
 				if _, ok := Courses[params["courseid"]]; !ok {
 					Courses[params["courseid"]] = newCourse
 					w.WriteHeader(http.StatusCreated)
-					w.Write([]byte("201 - Course added: " +
-						params["courseid"]))
+					w.Write([]byte("201 - Course added: " + params["courseid"]))
+					InsertRecord(db, params["courseid"], params["title"])
 				} else {
 					w.WriteHeader(http.StatusConflict)
-					w.Write([]byte(
-						"409 - Duplicate course ID"))
+					w.Write([]byte("409 - Duplicate course ID"))
 				}
 			} else {
 				w.WriteHeader(
 					http.StatusUnprocessableEntity)
-				w.Write([]byte("422 - Please supply course information " +
-					"in JSON format"))
+				w.Write([]byte("422 - Please supply course information " + "in JSON format"))
 			}
 		}
 
@@ -95,31 +107,25 @@ func Course(w http.ResponseWriter, r *http.Request) {
 				json.Unmarshal(requestBody, &newCourse)
 
 				if newCourse.Title == "" {
-					w.WriteHeader(
-						http.StatusUnprocessableEntity)
-					w.Write([]byte(
-						"422 - Please supply course " +
-							"information " + "in JSON format"))
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - Please supply course " + "information " + "in JSON format"))
 					return
 				}
 
 				if _, ok := Courses[params["courseid"]]; !ok {
 					Courses[params["courseid"]] = newCourse
 					w.WriteHeader(http.StatusCreated)
-					w.Write([]byte("201 - Course added: " +
-						params["courseid"]))
+					w.Write([]byte("201 - Course added: " + params["courseid"]))
+					InsertRecord(db, params["courseid"], params["title"])
 				} else {
 					Courses[params["courseid"]] = newCourse
 					w.WriteHeader(http.StatusAccepted)
-					w.Write([]byte("201 - Course Updated: " +
-						params["courseid"]))
+					w.Write([]byte("201 - Course Updated: " + params["courseid"]))
+					EditRecord(db, params["courseid"], params["title"])
 				}
 			} else {
-				w.WriteHeader(
-					http.StatusUnprocessableEntity)
-				w.Write([]byte("422 - Please supply " +
-					"course information " +
-					"in JSON format"))
+				w.WriteHeader(http.StatusUnprocessableEntity)
+				w.Write([]byte("422 - Please supply " + "course information " + "in JSON format"))
 			}
 		}
 	}
@@ -128,9 +134,10 @@ func Course(w http.ResponseWriter, r *http.Request) {
 		if _, ok := Courses[params["courseid"]]; ok {
 			json.NewEncoder(w).Encode(
 				Courses[params["courseid"]])
+			GetRecords(db)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("404 - No course found"))
+			w.Write([]byte("404 - No course found from GET"))
 		}
 	}
 
@@ -138,8 +145,8 @@ func Course(w http.ResponseWriter, r *http.Request) {
 		if _, ok := Courses[params["courseid"]]; ok {
 			delete(Courses, params["courseid"])
 			w.WriteHeader(http.StatusAccepted)
-			w.Write([]byte("202 - Course deleted: " +
-				params["courseid"]))
+			w.Write([]byte("202 - Course deleted: " + params["courseid"]))
+			DeleteRecord(db, params["courseid"])
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("404 - No course found"))
