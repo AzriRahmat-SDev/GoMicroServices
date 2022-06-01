@@ -33,9 +33,9 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome To The Available Courses")
 }
 
-func allCourseHandler(w http.ResponseWriter, r *http.Request) {
+func GetAllCourse(w http.ResponseWriter, r *http.Request) {
 
-	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/my_db")
+	db, err := sql.Open("mysql", "azri:password@tcp(127.0.0.1:3306)/my_db?charset=utf8&parseTime&loc=Local")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -50,7 +50,7 @@ func allCourseHandler(w http.ResponseWriter, r *http.Request) {
 	GetRecords(db)
 }
 
-func courseHandler(w http.ResponseWriter, r *http.Request) {
+func CourseHandler(w http.ResponseWriter, r *http.Request) {
 
 	// if !validKey(r) {
 	// 	w.WriteHeader(http.StatusNotFound)
@@ -58,7 +58,7 @@ func courseHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/my_db")
+	db, err := sql.Open("mysql", "azri:password@tcp(127.0.0.1:3306)/my_db")
 
 	if err != nil {
 		panic(err.Error())

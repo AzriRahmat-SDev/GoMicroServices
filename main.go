@@ -17,9 +17,9 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/", Home)
-	router.HandleFunc("/api/v1/courses", allCourseHandler)                                               //need to display the courses in the DB
-	router.HandleFunc("/api/v1/courses/{courseid}/{title}", courseHandler).Methods("GET", "PUT", "POST") //routes and attaching a CRUD request
-	router.HandleFunc("/api/v1/courses/{courseid}", courseHandler).Methods("DELETE")                     //routes and attaching a CRUD request
+	router.HandleFunc("/api/v1/courses/get", GetAllCourse).Methods("GET")                             //need to display the courses in the DB
+	router.HandleFunc("/api/v1/courses/add/{courseid}/{title}", CourseHandler).Methods("POST", "PUT") //routes and attaching a CRUD request
+	router.HandleFunc("/api/v1/courses/delete/{courseid}", CourseHandler).Methods("DELETE")           //routes and attaching a CRUD request
 
 	fmt.Println("Listening to port 5001")
 	log.Fatal(http.ListenAndServe(":5001", router))

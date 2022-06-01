@@ -24,7 +24,7 @@ func DeleteRecord(db *sql.DB, ID string) {
 }
 
 func EditRecord(db *sql.DB, ID string, Title string) {
-	query := fmt.Sprintf("UPDATE myCourse SET Title='%s', WHERE ID=%s", ID, Title)
+	query := fmt.Sprintf("UPDATE myCourse SET Title='%s',WHERE ID='%s'", Title, ID)
 	_, err := db.Query(query)
 	if err != nil {
 		panic(err.Error())
