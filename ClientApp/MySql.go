@@ -18,13 +18,12 @@ func DeleteRecord(db *sql.DB, ID string) {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	fmt.Println("Delete is successful")
 
 }
 
 func EditRecord(db *sql.DB, ID string, Title string) {
-	query := fmt.Sprintf("UPDATE myCourse SET Title='%s',WHERE ID='%s'", Title, ID)
+	query := fmt.Sprintf("UPDATE myCourse SET Title='%s' WHERE ID='%s'", Title, ID)
 	_, err := db.Query(query)
 	if err != nil {
 		panic(err.Error())
@@ -37,7 +36,6 @@ func InsertRecord(db *sql.DB, ID string, Title string) {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	fmt.Println("Insert is successful")
 }
 
